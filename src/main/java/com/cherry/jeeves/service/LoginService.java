@@ -10,6 +10,7 @@ import com.cherry.jeeves.exception.WechatException;
 import com.cherry.jeeves.exception.WechatQRExpiredException;
 import com.cherry.jeeves.utils.QRCodeUtils;
 import com.cherry.jeeves.utils.WechatUtils;
+import com.cherry.jeeves.utils.YuLiangQRCodeUtil;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
 import org.slf4j.Logger;
@@ -18,8 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.util.stream.Collectors;
 
@@ -45,7 +45,7 @@ public class LoginService {
     public void login() {
         try {
             //0 entry
-            wechatHttpServiceInternal.open(qrRefreshTimes);
+            WechatHttpServiceInternal.open(wechatHttpServiceInternal, qrRefreshTimes);
             logger.info("[0] entry completed");
             //1 uuid
             String uuid = wechatHttpServiceInternal.getUUID();
@@ -53,10 +53,16 @@ public class LoginService {
             logger.info("[1] uuid completed");
             //2 qr
             byte[] qrData = wechatHttpServiceInternal.getQR(uuid);
+            try {
+                YuLiangQRCodeUtil.encodeByWeChat(qrData,"E:\\weChat\\qrcode\\","wechat.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             ByteArrayInputStream stream = new ByteArrayInputStream(qrData);
             String qrUrl = QRCodeUtils.decode(stream);
+
             stream.close();
-            String qr = QRCodeUtils.generateQR(qrUrl, 40, 40);
+            String qr = QRCodeUtils.generateQR(qrUrl, 10, 10);
             logger.info("\r\n" + qr);
             logger.info("[2] qrcode completed");
             //3 statreport

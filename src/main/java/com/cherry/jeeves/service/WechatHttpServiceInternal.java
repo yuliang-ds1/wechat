@@ -121,31 +121,32 @@ class WechatHttpServiceInternal {
     /**
      * Open the entry page.
      *
+     * @param wechatHttpServiceInternal
      * @param retryTimes retry times of qr scan
      */
-    void open(int retryTimes) {
-        final String url = WECHAT_URL_ENTRY;
+    static void open(WechatHttpServiceInternal wechatHttpServiceInternal, int retryTimes) {
+        final String url = wechatHttpServiceInternal.WECHAT_URL_ENTRY;
         HttpHeaders customHeader = new HttpHeaders();
         customHeader.setPragma("no-cache");
         customHeader.setCacheControl("no-cache");
         customHeader.set("Upgrade-Insecure-Requests", "1");
         customHeader.set(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
-        HeaderUtils.assign(customHeader, getHeader);
-        restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(customHeader), String.class);
+        HeaderUtils.assign(customHeader, wechatHttpServiceInternal.getHeader);
+        wechatHttpServiceInternal.restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(customHeader), String.class);
         //manually insert two cookies into cookiestore, as they're supposed to be stored in browsers by javascript.
-        CookieStore store = (CookieStore) ((StatefullRestTemplate) restTemplate).getHttpContext().getAttribute(HttpClientContext.COOKIE_STORE);
+        CookieStore store = (CookieStore) ((StatefullRestTemplate) wechatHttpServiceInternal.restTemplate).getHttpContext().getAttribute(HttpClientContext.COOKIE_STORE);
         Date maxDate = new Date(Long.MAX_VALUE);
-        String domain = WECHAT_URL_ENTRY.replaceAll("https://", "").replaceAll("/", "");
+        String domain = wechatHttpServiceInternal.WECHAT_URL_ENTRY.replaceAll("https://", "").replaceAll("/", "");
         Map<String, String> cookies = new HashMap<>(3);
         cookies.put("MM_WX_NOTIFY_STATE", "1");
         cookies.put("MM_WX_SOUND_STATE", "1");
         if (retryTimes > 0) {
             cookies.put("refreshTimes", String.valueOf(retryTimes));
         }
-        appendAdditionalCookies(store, cookies, domain, "/", maxDate);
+        wechatHttpServiceInternal.appendAdditionalCookies(store, cookies, domain, "/", maxDate);
         //It's now at entry page.
-        this.originValue = WECHAT_URL_ENTRY;
-        this.refererValue = WECHAT_URL_ENTRY.replaceAll("/$", "");
+        wechatHttpServiceInternal.originValue = wechatHttpServiceInternal.WECHAT_URL_ENTRY;
+        wechatHttpServiceInternal.refererValue = wechatHttpServiceInternal.WECHAT_URL_ENTRY.replaceAll("/$", "");
     }
 
     /**
